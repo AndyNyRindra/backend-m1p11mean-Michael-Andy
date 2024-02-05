@@ -6,7 +6,6 @@ const logger = require('morgan');
 const mongoose = require('mongoose');
 
 const indexRouter = require('./routes/index');
-const clientRouter = require('./routes/clientRoute')
 
 const app = express();
 
@@ -35,9 +34,9 @@ mongoose.connect(connectionString, {
 .catch((err) => console.log(err));
   app.set('view engine', 'ejs');
   app.use('/', indexRouter);
-  app.use('/clients', clientRouter);
 
 require("./routes/auth.routes")(app);
+require("./routes/employee.routes")(app);
 
 // error handler
 app.use(function(err, req, res, next) {
