@@ -17,7 +17,6 @@ const employeeSchema = new Schema({
     },
     photo: {
         type: String,
-        required: true,
     },
     phone: {
         type: String,
