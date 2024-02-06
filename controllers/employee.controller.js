@@ -45,9 +45,10 @@ exports.findAll = (req, res) => {
 
     if (page && size) {
         // Avec pagination
+        const limit = size ? size : 10;
         Employee.find()
-            .skip((page - 1) * size)
-            .limit(size)
+            .skip((page - 1) * limit)
+            .limit(limit)
             .exec((err, employees) => {
                 if (err) {
                     res.status(500).send({ message: err });
