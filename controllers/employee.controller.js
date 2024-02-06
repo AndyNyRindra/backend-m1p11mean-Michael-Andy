@@ -11,12 +11,12 @@ exports.create = (req, res) => {
         phone: req.body.phone
     });
 
-    employee.save((err, user) => {
+    employee.save((err, employee) => {
         if (err) {
             res.status(500).send({ message: err });
             return;
         }
-        user.save((err) => {
+        employee.save((err) => {
             if (err) {
                 res.status(500).send({ message: err });
                 return;
