@@ -1,5 +1,5 @@
 const controller = require("../controllers/employee.controller");
-const {authJwt} = require("../middlewares/authJwt");
+const {authJwt} = require("../middlewares");
 
 module.exports = function(app) {
     app.use(function(req, res, next) {
@@ -14,5 +14,29 @@ module.exports = function(app) {
         "/api/employee",
         [authJwt.verifyToken],
         controller.create
+    );
+
+    app.get(
+        "/api/employee/:id",
+        [authJwt.verifyToken],
+        controller.findById
+    );
+
+    app.get(
+        "/api/employees",
+        [authJwt.verifyToken],
+        controller.findAll
+    );
+
+    app.put(
+        "/api/employee/:id",
+        [authJwt.verifyToken],
+        controller.update
+    );
+
+    app.delete(
+        "/api/employee/:id",
+        [authJwt.verifyToken],
+        controller.delete
     );
 };

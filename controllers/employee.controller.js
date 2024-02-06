@@ -26,3 +26,77 @@ exports.create = (req, res) => {
         });
     });
 };
+
+exports.findById = (req, res) => {
+    Employee.findById(req.params.id, (err, employee) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+
+        res.send(employee);
+    });
+};
+
+
+exports.findAll = (req, res) => {
+    const page = parseInt(req.query.page);
+    const size = parseInt(req.query.size);
+
+    if (page && size) {
+        // Avec pagination
+        Employee.find()
+            .skip((page - 1) * size)
+            .limit(size)
+            .exec((err, employees) => {
+                if (err) {
+                    res.status(500).send({ message: err });
+                    return;
+                }
+
+                res.send(employees);
+            });
+    } else {
+        // Sans pagination
+        Employee.find({}, (err, employees) => {
+            if (err) {
+                res.status(500).send({ message: err });
+                return;
+            }
+
+            res.send(employees);
+        });
+    }
+};
+
+exports.update = (req, res) => {
+    Employee.findByIdAndUpdate(
+        req.params.id,
+        {
+            name: req.body.name,
+            email: req.body.email,
+            photo: req.body.photo,
+            phone: req.body.phone
+        },
+        { new: true },
+        (err, employee) => {
+            if (err) {
+                res.status(500).send({ message: err });
+                return;
+            }
+
+            res.send({ message: "L'employé a été mis à jour!" });
+        }
+    );
+};
+
+exports.delete = (req, res) => {
+    Employee.findByIdAndRemove(req.params.id, (err, employee) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+
+        res.send({ message: "L'employé a été supprimé!" });
+    });
+};
