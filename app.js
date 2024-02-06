@@ -38,6 +38,8 @@ mongoose.connect(connectionString, {
   app.use('/', indexRouter);
 
 require("./routes/auth.routes")(app);
+require("./routes/service.routes")(app);
+
 
 // error handler
 app.use(function(err, req, res, next) {
