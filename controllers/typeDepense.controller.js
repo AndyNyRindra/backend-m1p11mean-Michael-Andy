@@ -60,7 +60,7 @@ exports.update = (req, res) => {
 }
 
 exports.delete = (req, res) => {
-    TypeDepense.delete(req.params.id, (err, data) => {
+    TypeDepense.findByIdAndRemove(req.params.id, (err, data) => {
         if (err) {
             if (err.kind === "not_found") {
                 res.status(404).send({ message: `Type de dépense avec l'id ${req.params.id} non trouvé.` });
