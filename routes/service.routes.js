@@ -11,13 +11,13 @@ module.exports = function(app) {
     });
 
     app.post(
-        "/api/service",
+        "/api/services",
         [authJwt.verifyToken],
         controller.create
     );
 
     app.get(
-        "/api/service/:id",
+        "/api/services/:id",
         [authJwt.verifyToken],
         controller.findById
     );
@@ -29,13 +29,13 @@ module.exports = function(app) {
     );
 
     app.put(
-        "/api/service/:id",
+        "/api/services/:id",
         [authJwt.verifyToken],
         controller.update
     );
 
     app.delete(
-        "/api/service/:id",
+        "/api/services/:id",
         [authJwt.verifyToken],
         controller.delete
     );
