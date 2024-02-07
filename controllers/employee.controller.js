@@ -1,4 +1,5 @@
-const Employee = require("../models/employee");
+const db = require("../models");
+const Employee = db.employee;
 var bcrypt = require("bcryptjs");
 
 
