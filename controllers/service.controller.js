@@ -1,4 +1,5 @@
-const Service = require("../models/service");
+const db = require("../models");
+const Service = db.service;
 
 
 exports.create = (req, res) => {
