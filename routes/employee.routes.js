@@ -11,13 +11,13 @@ module.exports = function(app) {
     });
 
     app.post(
-        "/api/employee",
+        "/api/employees",
         [authJwt.verifyToken],
         controller.create
     );
 
     app.get(
-        "/api/employee/:id",
+        "/api/employees/:id",
         [authJwt.verifyToken],
         controller.findById
     );
@@ -29,13 +29,13 @@ module.exports = function(app) {
     );
 
     app.put(
-        "/api/employee/:id",
+        "/api/employees/:id",
         [authJwt.verifyToken],
         controller.update
     );
 
     app.delete(
-        "/api/employee/:id",
+        "/api/employees/:id",
         [authJwt.verifyToken],
         controller.delete
     );
