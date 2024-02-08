@@ -9,7 +9,8 @@ exports.create = (req, res) => {
         email: req.body.email,
         password: bcrypt.hashSync(req.body.password, 8),
         photo: req.body.photo,
-        phone: req.body.phone
+        phone: req.body.phone,
+        role: req.body.role
     });
 
     employee.save((err, employee) => {
@@ -29,7 +30,7 @@ exports.create = (req, res) => {
 };
 
 exports.findById = (req, res) => {
-    Employee.findById(req.params.id, (err, employee) => {
+    Employee.findById(req.params.id).populate('role').exec((err, employee) => {
         if (err) {
             res.status(500).send({ message: err });
             return;
@@ -50,6 +51,7 @@ exports.findAll = (req, res) => {
         Employee.find()
             .skip((page - 1) * limit)
             .limit(limit)
+            .populate('role')
             .exec((err, employees) => {
                 if (err) {
                     res.status(500).send({ message: err });
@@ -60,7 +62,7 @@ exports.findAll = (req, res) => {
             });
     } else {
         // Sans pagination
-        Employee.find({}, (err, employees) => {
+        Employee.find().populate('role').exec((err, employees) => {
             if (err) {
                 res.status(500).send({ message: err });
                 return;
@@ -78,7 +80,8 @@ exports.update = (req, res) => {
             name: req.body.name,
             email: req.body.email,
             photo: req.body.photo,
-            phone: req.body.phone
+            phone: req.body.phone,
+            role: req.body.role
         },
         { new: true },
         (err, employee) => {

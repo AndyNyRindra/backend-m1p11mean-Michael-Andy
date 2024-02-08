@@ -12,25 +12,25 @@ module.exports = function(app) {
 
     app.post(
         "/api/employees",
-        [authJwt.verifyToken],
+        // [authJwt.verifyToken],
         controller.create
     );
 
     app.get(
         "/api/employees/:id",
-        [authJwt.verifyToken],
+        // [authJwt.verifyToken],
         controller.findById
     );
 
     app.get(
         "/api/employees",
-        [authJwt.verifyToken],
+        // [authJwt.verifyToken],
         controller.findAll
     );
 
     app.put(
         "/api/employees/:id",
-        [authJwt.verifyToken],
+        // [authJwt.verifyToken],
         controller.update
     );
 
