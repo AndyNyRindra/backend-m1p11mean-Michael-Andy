@@ -22,12 +22,12 @@ const employeeSchema = new Schema({
         type: String,
         required: true,
     },
-    // position:
-    //     {
-    //         type: mongoose.Schema.Types.ObjectId,
-    //         ref: "Position"
-    //     }
-    //
+    role:
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Role"
+        }
+
 }, {
     timestamps: true
 })
