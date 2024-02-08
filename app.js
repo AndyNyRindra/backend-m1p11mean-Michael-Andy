@@ -38,6 +38,7 @@ mongoose.connect(connectionString, {
   app.use('/', indexRouter);
 
 require("./routes/auth.routes")(app);
+require("./routes/employee.routes")(app);
 require("./routes/typeDepense.routes")(app);
 
 // error handler
