@@ -18,13 +18,13 @@ module.exports = function(app) {
 
     app.get(
         "/api/employees/:id",
-        [authJwt.verifyToken],
+        // [authJwt.verifyToken],
         controller.findById
     );
 
     app.get(
         "/api/employees",
-        [authJwt.verifyToken],
+        // [authJwt.verifyToken],
         controller.findAll
     );
 
