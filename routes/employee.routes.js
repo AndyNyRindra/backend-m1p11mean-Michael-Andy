@@ -12,7 +12,7 @@ module.exports = function(app) {
 
     app.post(
         "/api/employees",
-        [authJwt.verifyToken],
+        // [authJwt.verifyToken],
         controller.create
     );
 
@@ -30,13 +30,13 @@ module.exports = function(app) {
 
     app.put(
         "/api/employees/:id",
-        [authJwt.verifyToken],
+        // [authJwt.verifyToken],
         controller.update
     );
 
     app.delete(
         "/api/employees/:id",
-        [authJwt.verifyToken],
+        // [authJwt.verifyToken],
         controller.delete
     );
 };
