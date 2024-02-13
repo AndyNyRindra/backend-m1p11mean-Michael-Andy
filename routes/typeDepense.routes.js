@@ -1,4 +1,5 @@
 const controller = require("../controllers/typeDepense.controller");
+const { employeeAuthJwt } = require("../middlewares");
 
 module.exports = function(app) {
     app.use(function(req, res, next) {
@@ -11,14 +12,27 @@ module.exports = function(app) {
 
     app.post(
         "/api/typeDepenses",
+        employeeAuthJwt.isAdmin,
         controller.create
     );
 
-    app.get("/api/typeDepenses", controller.findall);
+    app.get("/api/typeDepenses",
+        employeeAuthJwt.isAdmin,
+        controller.findall
+    );
 
-    app.get("/api/typeDepenses/:id", controller.findone);
+    app.get("/api/typeDepenses/:id",
+        employeeAuthJwt.isAdmin,
+        controller.findone
+    );
 
-    app.put("/api/typeDepenses/:id", controller.update);
+    app.put("/api/typeDepenses/:id",
+        employeeAuthJwt.isAdmin,
+        controller.update
+    );
 
-    app.delete("/api/typeDepenses/:id", controller.delete);
+    app.delete("/api/typeDepenses/:id",
+        employeeAuthJwt.isAdmin,
+        controller.delete
+    );
 }
