@@ -1,17 +1,17 @@
 const db= require ('../models');
 
-const EmployeeRating = db.employeeRating;
-const Employee = db.employee;
+const ServiceRating = db.serviceRating;
+const Service = db.service;
 const User = db.user;
 
 exports.create = (req, res) => {
-    const employeeRating = new EmployeeRating({
-        employeeId: req.body.employeeId,
+    const serviceRating = new ServiceRating({
+        serviceId: req.body.serviceId,
         rating: req.body.rating,
         date: req.body.date
     });
 
-    employeeRating.save(employeeRating).then(data => {
+    serviceRating.save(serviceRating).then(data => {
         res.send(data);
     }).catch(err => {
         res.status(500).send({
@@ -21,7 +21,7 @@ exports.create = (req, res) => {
 }
 
 exports.findAll = (req, res) => {
-    EmployeeRating.find().populate('employeeId').exec((err, data) => {
+    ServiceRating.find().populate('serviceId').exec((err, data) => {
         if (err) {
             res.status(500).send({ message: err });
             return;
@@ -33,7 +33,7 @@ exports.findAll = (req, res) => {
 exports.update = (req, res) => {
     const id = req.params.id;
 
-    EmployeeRating.findByIdAndUpdate(id, req.body, { useFindAndModify: false }).then(data => {
+    ServiceRating.findByIdAndUpdate(id, req.body, { useFindAndModify: false }).then(data => {
         if (!data) {
             res.status(404).send({
                 message: `Impossible de mettre à jour l'evaluation avec id=${id}.`
@@ -47,47 +47,47 @@ exports.update = (req, res) => {
     });
 }
 
-// get list of employee rating by user id, get all employee, and rating if there is, if not then 0
+// get list of service rating by user id, get all service, and rating if there is, if not then 0
 exports.getRatingByUserId = (req, res) => {
     const userId = req.params.id;
     if (userId==='undefined') {
-        Employee.find({}, (err, employees) => {
+        Service.find({}, (err, services) => {
             if (err) {
                 return res.status(500).send({ message: err });
             }
-            const employeesWithZeroRating = employees.map(employee => ({ ...employee._doc, rating: 0 }));
-            return res.status(200).send(employeesWithZeroRating);
+            const servicesWithZeroRating = services.map(service => ({ ...service._doc, rating: 0 }));
+            return res.status(200).send(servicesWithZeroRating);
         });
     }else {
-        // find all employees
-        Employee.find({}, (err, employees) => {
+        // find all services
+        Service.find({}, (err, services) => {
             if (err) {
                 res.status(500).send({message: err});
                 return;
             }
 
             // Find ratings for the user
-            EmployeeRating.find({user: userId}, (err, ratings) => {
+            ServiceRating.find({user: userId}, (err, ratings) => {
                 if (err) {
                     res.status(500).send({message: err});
                     return;
                 }
 
-                // Create a map to store ratings by employee ID
+                // Create a map to store ratings by service ID
                 const ratingsMap = new Map();
                 ratings.forEach(rating => {
-                    ratingsMap.set(rating.employee.toString(), rating.rating);
+                    ratingsMap.set(rating.service.toString(), rating.rating);
                 });
 
-                // Loop through employees to add ratings (or 0 if not found)
-                const employeesWithRatings = employees.map(employee => {
-                    const employeeId = employee._id.toString();
-                    const rating = ratingsMap.get(employeeId) || 0;
-                    return {...employee._doc, rating}; // Add rating to employee document
+                // Loop through services to add ratings (or 0 if not found)
+                const servicesWithRatings = services.map(service => {
+                    const serviceId = service._id.toString();
+                    const rating = ratingsMap.get(serviceId) || 0;
+                    return {...service._doc, rating}; // Add rating to service document
                 });
 
-                // Return employees with ratings
-                return res.status(200).send(employeesWithRatings);
+                // Return services with ratings
+                return res.status(200).send(servicesWithRatings);
             });
         });
     }
@@ -95,11 +95,11 @@ exports.getRatingByUserId = (req, res) => {
 
 exports.insertOrUpdateRating = (req, res) => {
     const userId = req.body.userId;
-    const employeeId = req.body.employeeId;
+    const serviceId = req.body.serviceId;
     const rating = req.body.rating;
 
     // Define the filter for finding/updating the rating
-    const filter = { user: userId, employee: employeeId };
+    const filter = { user: userId, service: serviceId };
 
     // Define the update to be applied
     const update = { rating };
@@ -108,7 +108,7 @@ exports.insertOrUpdateRating = (req, res) => {
     const options = { upsert: true, new: true };
 
     // Find and update (or insert) the rating
-    EmployeeRating.findOneAndUpdate(filter, update, options, (err, data) => {
+    ServiceRating.findOneAndUpdate(filter, update, options, (err, data) => {
         if (err) {
             return res.status(500).send({ message: err });
         }
