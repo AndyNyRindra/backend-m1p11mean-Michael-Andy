@@ -1,5 +1,5 @@
 const controller = require("../controllers/employee.controller");
-const {authJwt} = require("../middlewares");
+const {employeeAuthJwt} = require("../middlewares");
 
 module.exports = function(app) {
     app.use(function(req, res, next) {
@@ -12,31 +12,29 @@ module.exports = function(app) {
 
     app.post(
         "/api/employees",
-        // [authJwt.verifyToken],
+        employeeAuthJwt.isAdmin,
         controller.create
     );
 
     app.get(
         "/api/employees/:id",
-        // [authJwt.verifyToken],
         controller.findById
     );
 
     app.get(
         "/api/employees",
-        // [authJwt.verifyToken],
         controller.findAll
     );
 
     app.put(
         "/api/employees/:id",
-        // [authJwt.verifyToken],
+        employeeAuthJwt.isAdmin,
         controller.update
     );
 
     app.delete(
         "/api/employees/:id",
-        // [authJwt.verifyToken],
+        employeeAuthJwt.isAdmin,
         controller.delete
     );
 };

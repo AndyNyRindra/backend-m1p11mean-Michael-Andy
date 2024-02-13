@@ -1,4 +1,5 @@
 const controller = require("../controllers/role.controller");
+const { employeeAuthJwt } = require("../middlewares");
 
 module.exports = function(app) {
     app.use(function(req, res, next) {
@@ -9,5 +10,9 @@ module.exports = function(app) {
         next();
     });
 
-    app.get("/api/roles", controller.findall);
+    app.get(
+        "/api/roles",
+        employeeAuthJwt.isAdmin,
+        controller.findall
+    );
 }
