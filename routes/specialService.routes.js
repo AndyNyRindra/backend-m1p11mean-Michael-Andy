@@ -1,4 +1,6 @@
 const controller = require("../controllers/specialService.controller");
+const {employeeAuthJwt} = require("../middlewares");
+
 
 module.exports = function(app) {
     app.use(function(req, res, next) {
@@ -11,6 +13,7 @@ module.exports = function(app) {
 
     app.post(
         "/api/specialServices",
+        employeeAuthJwt.isAdmin,
         controller.create
     );
 
