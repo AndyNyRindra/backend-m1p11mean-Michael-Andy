@@ -25,7 +25,10 @@ verifyEmployeeToken = (req, res, next) => {
 };
 
 isAdmin = (req, res, next) => {
-    Employee.findById(req.employeeId).exec((err, employee) => {
+    let employeeId = req.headers['employeeid'];
+    Employee.findById(employeeId)
+        .populate('role')
+        .exec((err, employee) => {
         if (err) {
             res.status(500).send({ message: err });
             return;
@@ -36,7 +39,7 @@ isAdmin = (req, res, next) => {
             return;
         }
 
-        if (employee.role.name === "admin") {
+        if (employee.role.name === "Manager") {
             next();
             return;
         }
