@@ -17,5 +17,10 @@ module.exports = function(app) {
         controller.create
     );
 
+    app.get(
+        "/api/specialServices/currents",
+        controller.findCurrents
+    );
+
 
 }
