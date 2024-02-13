@@ -4,48 +4,7 @@ const EmployeeRating = db.employeeRating;
 const Employee = db.employee;
 const User = db.user;
 
-exports.create = (req, res) => {
-    const employeeRating = new EmployeeRating({
-        employeeId: req.body.employeeId,
-        rating: req.body.rating,
-        date: req.body.date
-    });
 
-    employeeRating.save(employeeRating).then(data => {
-        res.send(data);
-    }).catch(err => {
-        res.status(500).send({
-            message: err.message || "Erreur lors de la création de l'evaluation"
-        });
-    });
-}
-
-exports.findAll = (req, res) => {
-    EmployeeRating.find().populate('employeeId').exec((err, data) => {
-        if (err) {
-            res.status(500).send({ message: err });
-            return;
-        }
-        res.send(data);
-    });
-}
-
-exports.update = (req, res) => {
-    const id = req.params.id;
-
-    EmployeeRating.findByIdAndUpdate(id, req.body, { useFindAndModify: false }).then(data => {
-        if (!data) {
-            res.status(404).send({
-                message: `Impossible de mettre à jour l'evaluation avec id=${id}.`
-            });
-        } else res.send({ message: "L'evaluation a été mise à jour avec succès." });
-    }
-    ).catch(err => {
-        res.status(500).send({
-            message: "Erreur lors de la mise à jour de l'evaluation avec id=" + id
-        });
-    });
-}
 
 // get list of employee rating by user id, get all employee, and rating if there is, if not then 0
 exports.getRatingByUserId = (req, res) => {
