@@ -18,3 +18,19 @@ exports.create = (req, res) => {
         });
     });
 };
+
+
+exports.findCurrents = (req, res) => {
+    const currentDate = new Date();
+        SpecialService.find({
+            start: { $lte: currentDate },
+            end: { $gte: currentDate }
+        }).populate('services').exec((err, specialServices) => {
+            if (err) {
+                res.status(500).send({ message: err });
+                return;
+            }
+            res.send(specialServices);
+        });
+
+};
