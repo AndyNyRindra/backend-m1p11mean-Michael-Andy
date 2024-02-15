@@ -1,15 +1,58 @@
 const db = require("../models");
 const TypeDepense = db.typeDepense;
 
-exports.findall = (req, res) =>{
-    TypeDepense.find((err, data) => {
+exports.findall = (req, res) => {
+    const page = parseInt(req.query.page);
+    const size = parseInt(req.query.size);
+    const nameFilter = req.query.name;
+    console.log(req.query);
+
+    let query = TypeDepense.find();
+
+    // Apply filters
+    if (nameFilter) {
+        query = query.where('name', { $regex: new RegExp(nameFilter, "i") });
+    }
+
+    const countQuery = TypeDepense.find(); // Create a separate count query
+
+    // Count the total number of documents
+    countQuery.countDocuments((err, count) => {
         if (err) {
             res.status(500).send({ message: err });
             return;
         }
-        res.send(data);
+
+        const totalPages = Math.ceil(count / size);
+
+        // Apply pagination if page and size are provided
+        if ((page !== undefined && size !== undefined) && (!isNaN(page) && !isNaN(size))) {
+            const limit = size;
+            const skip = (page - 1) * limit;
+
+            query.skip(skip)
+                .limit(limit)
+                .exec((err, typeDepenses) => {
+                    if (err) {
+                        res.status(500).send({ message: err });
+                        return;
+                    }
+                    console.log(typeDepenses);
+                    res.send({ count: count, data: typeDepenses, totalPages: totalPages }); // Return count and paginated results
+                });
+        } else {
+            // If page and size are not provided, return all results
+            query.exec((err, typeDepenses) => {
+                if (err) {
+                    res.status(500).send({ message: err });
+                    return;
+                }
+                console.log(typeDepenses);
+                res.send({ count: count, data: typeDepenses, totalPages: totalPages }); // Return count and all results
+            });
+        }
     });
-}
+};
 
 exports.findone = (req, res) =>{
     TypeDepense.findById(req.params.id, (err, data) => {
