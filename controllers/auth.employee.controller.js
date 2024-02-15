@@ -13,7 +13,7 @@ exports.signin = (req, res) => {
     Employee.findOne({
         email: req.body.email,
     })
-        // .populate("roles", "-__v")
+        .populate("role")
         .exec((err, employee) => {
             if (err) {
                 res.status(500).send({ message: err });
