@@ -47,7 +47,6 @@ exports.findall = (req, res) => {
                     res.status(500).send({ message: err });
                     return;
                 }
-                console.log(typeDepenses);
                 res.send({ count: count, data: typeDepenses, totalPages: totalPages }); // Return count and all results
             });
         }
