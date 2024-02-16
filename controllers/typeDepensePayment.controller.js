@@ -6,7 +6,6 @@ exports.findall = (req, res) => {
     const size = parseInt(req.query.size);
     const monthFilter = req.query.month;
     const yearFilter = req.query.year;
-    console.log(req.query);
 
     let query = TypeDepensePayment.find();
 

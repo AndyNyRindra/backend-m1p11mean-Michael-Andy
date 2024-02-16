@@ -14,6 +14,7 @@ db.employeeRating = require("./employeeRating");
 db.serviceRating = require("./serviceRating");
 db.specialService = require("./specialService");
 db.typeDepensePayment = require("./typeDepensePayment");
+db.depensePayment = require("./depensePayment");
 
 // db.ROLES = ["user", "admin", "moderator"];
 
