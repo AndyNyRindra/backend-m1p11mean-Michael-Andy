@@ -46,6 +46,7 @@ require("./routes/employeeRating.routes")(app);
 require("./routes/serviceRating.routes")(app);
 require("./routes/authEmployee.routes")(app);
 require("./routes/specialService.routes")(app);
+require("./routes/typeDepensePayment.routes")(app);
 
 // error handler
 app.use(function(err, req, res, next) {

@@ -13,6 +13,7 @@ db.role = require("./role");
 db.employeeRating = require("./employeeRating");
 db.serviceRating = require("./serviceRating");
 db.specialService = require("./specialService");
+db.typeDepensePayment = require("./typeDepensePayment");
 
 // db.ROLES = ["user", "admin", "moderator"];
 
