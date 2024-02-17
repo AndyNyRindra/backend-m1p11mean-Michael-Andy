@@ -68,7 +68,7 @@ exports.findAll = (req, res) => {
 
         const totalPages = Math.ceil(count / size);
 
-        if (page && size) {
+        if (page) {
             // Avec pagination
             const limit = size ? size : 10;
             query

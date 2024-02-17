@@ -42,32 +42,97 @@ exports.findById = (req, res) => {
 exports.findAll = (req, res) => {
     const page = parseInt(req.query.page);
     const size = parseInt(req.query.size);
+    const nameFilter = req.query.name;
+    const minPrice = req.query.minPrice;
+    const maxPrice = req.query.maxPrice;
+    const minDuration = req.query.minDuration;
+    const maxDuration = req.query.maxDuration;
+    const minCommission = req.query.minCommission;
+    const maxCommission = req.query.maxCommission;
+    let conditions = {};
 
-    if (page) {
-        // Avec pagination
-        var limit = size ? size : 10;
-        Service.find()
-            .skip((page - 1) * limit)
-            .limit(limit)
-            .exec((err, services) => {
-                if (err) {
-                    res.status(500).send({ message: err });
-                    return;
-                }
+// Apply filters
+    if (nameFilter) {
+        conditions.$or = [
+            { 'name': { $regex: new RegExp(nameFilter, "i") } }
+        ];
+    }
 
-                res.send(services);
-            });
-    } else {
-        // Sans pagination
-        Service.find({}, (err, services) => {
+    if (minPrice) {
+        conditions.price = { $gte: minPrice };
+    }
+
+    if (maxPrice) {
+        if (conditions.price) {
+            conditions.price.$lte = maxPrice;
+        } else {
+            conditions.price = { $lte: maxPrice };
+        }
+    }
+
+    if (minDuration) {
+        conditions.duration = { $gte: minDuration };
+    }
+
+    if (maxDuration) {
+        if (conditions.duration) {
+            conditions.duration.$lte = maxDuration;
+        } else {
+            conditions.duration = { $lte: maxDuration };
+        }
+    }
+
+    if (minCommission) {
+        conditions.commission = { $gte: minCommission };
+    }
+
+    if (maxCommission) {
+        if (conditions.commission) {
+            conditions.commission.$lte = maxCommission;
+        } else {
+            conditions.commission = { $lte: maxCommission };
+        }
+    }
+
+
+    let query = Service.find(conditions);
+
+    Service.find(conditions).countDocuments((err, count) => {
+
             if (err) {
-                res.status(500).send({ message: err });
+                res.status(500).send({message: err});
                 return;
             }
 
-            res.send(services);
-        });
+            const totalPages = Math.ceil(count / size);
+
+            if (page) {
+                // Avec pagination
+                var limit = size ? size : 10;
+                query
+                    .skip((page - 1) * limit)
+                    .limit(limit)
+                    .exec((err, services) => {
+                        if (err) {
+                            res.status(500).send({ message: err });
+                            return;
+                        }
+
+                        res.send({ count: count, data: services, totalPages: totalPages });
+                    });
+            } else {
+                // Sans pagination
+                query.exec( (err, services) => {
+                    if (err) {
+                        res.status(500).send({ message: err });
+                        return;
+                    }
+
+                    res.send({ count: count, data: services, totalPages: totalPages });
+                });
+            }
     }
+    );
 };
 
 exports.update = (req, res) => {
