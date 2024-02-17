@@ -138,3 +138,37 @@ exports.delete = (req, res) => {
         res.send({ message: "L'employé a été supprimé!" });
     });
 };
+
+exports.updatePassword = (req, res) => {
+    let employeeId = req.headers['employeeid'];
+    let oldPassword = req.body.oldPassword;
+    let newPassword = req.body.newPassword;
+    let confirmPassword = req.body.confirmPassword;
+
+    Employee.findById(employeeId, (err, employee) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+
+        if (!bcrypt.compareSync(oldPassword, employee.password)) {
+            res.status(400).send({ message: "Mot de passe incorrect!" });
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            res.status(400).send({ message: "Les mots de passe ne correspondent pas!" });
+            return;
+        }
+
+        employee.password = bcrypt.hashSync(newPassword, 8);
+        employee.save((err) => {
+            if (err) {
+                res.status(500).send({ message: err });
+                return;
+            }
+
+            res.send({ message: "Le mot de passe a été mis à jour!" });
+        });
+    });
+}

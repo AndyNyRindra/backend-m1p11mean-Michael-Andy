@@ -27,6 +27,11 @@ module.exports = function(app) {
     );
 
     app.put(
+        "/api/employees/updatePassword",
+        controller.updatePassword
+    );
+
+    app.put(
         "/api/employees/:id",
         employeeAuthJwt.isAdmin,
         controller.update
