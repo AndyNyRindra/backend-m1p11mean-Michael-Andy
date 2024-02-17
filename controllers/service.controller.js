@@ -42,6 +42,7 @@ exports.findById = (req, res) => {
 exports.findAll = (req, res) => {
     const page = parseInt(req.query.page);
     const size = parseInt(req.query.size);
+    const ignorePhotos = req.query.ignorePhotos;
     const nameFilter = req.query.name;
     const minPrice = req.query.minPrice;
     const maxPrice = req.query.maxPrice;
@@ -96,8 +97,14 @@ exports.findAll = (req, res) => {
 
 
     let query = Service.find(conditions);
+    let countQuery = Service.find(conditions);
 
-    Service.find(conditions).countDocuments((err, count) => {
+    if (ignorePhotos === 'true') {
+        query = query.select('-photos');
+        countQuery = countQuery.select('-photos');
+    }
+
+    countQuery.countDocuments((err, count) => {
 
             if (err) {
                 res.status(500).send({message: err});

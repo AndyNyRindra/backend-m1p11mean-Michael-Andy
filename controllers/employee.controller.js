@@ -45,6 +45,7 @@ exports.findAll = (req, res) => {
     const page = parseInt(req.query.page);
     const size = parseInt(req.query.size);
     const keyWordFilter = req.query.keyWord;
+    const ignorePhoto = req.query.ignorePhoto;
     let conditions = {};
 
 // Apply filters
@@ -59,8 +60,14 @@ exports.findAll = (req, res) => {
     }
 
     let query = Employee.find(conditions);
+    let countQuery = Employee.find(conditions);
 
-    Employee.find(conditions).countDocuments((err, count) => {
+    if (ignorePhoto === 'true') {
+        query.select('-photo');
+        countQuery.select('-photo');
+    }
+
+    countQuery.countDocuments((err, count) => {
         if (err) {
             res.status(500).send({message: err});
             return;
