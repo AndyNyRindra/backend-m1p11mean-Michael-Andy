@@ -44,33 +44,59 @@ exports.findById = (req, res) => {
 exports.findAll = (req, res) => {
     const page = parseInt(req.query.page);
     const size = parseInt(req.query.size);
+    const keyWordFilter = req.query.keyWord;
+    let conditions = {};
 
-    if (page && size) {
-        // Avec pagination
-        const limit = size ? size : 10;
-        Employee.find()
-            .skip((page - 1) * limit)
-            .limit(limit)
-            .populate('role')
-            .exec((err, employees) => {
+// Apply filters
+    if (keyWordFilter) {
+        conditions = {
+            $or: [
+                { 'name': { $regex: new RegExp(keyWordFilter, "i") } },
+                { 'email': { $regex: new RegExp(keyWordFilter, "i") } },
+                { 'phone': { $regex: new RegExp(keyWordFilter, "i") } }
+            ]
+        };
+    }
+
+    let query = Employee.find(conditions);
+
+    Employee.find(conditions).countDocuments((err, count) => {
+        if (err) {
+            res.status(500).send({message: err});
+            return;
+        }
+
+        const totalPages = Math.ceil(count / size);
+
+        if (page && size) {
+            // Avec pagination
+            const limit = size ? size : 10;
+            query
+                .skip((page - 1) * limit)
+                .limit(limit)
+                .populate('role')
+                .exec((err, employees) => {
+                    if (err) {
+                        res.status(500).send({ message: err });
+                        return;
+                    }
+
+                    res.send({ count: count, data: employees, totalPages: totalPages });
+                });
+        } else {
+            // Sans pagination
+            query.populate('role').exec((err, employees) => {
                 if (err) {
                     res.status(500).send({ message: err });
                     return;
                 }
 
-                res.send(employees);
+                res.send({ count: count, data: employees, totalPages: totalPages });
             });
-    } else {
-        // Sans pagination
-        Employee.find().populate('role').exec((err, employees) => {
-            if (err) {
-                res.status(500).send({ message: err });
-                return;
-            }
+        }
 
-            res.send(employees);
-        });
-    }
+    });
+
 };
 
 exports.update = (req, res) => {
