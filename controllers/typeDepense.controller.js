@@ -6,17 +6,21 @@ exports.findall = (req, res) => {
     const size = parseInt(req.query.size);
     const nameFilter = req.query.name;
 
-    let query = TypeDepense.find();
+    let conditions = {};
 
     // Apply filters
     if (nameFilter) {
-        query = query.where('name', { $regex: new RegExp(nameFilter, "i") });
+        conditions = {
+            $or: [
+                { 'name': { $regex: new RegExp(nameFilter, "i") } }
+            ]
+        };
     }
 
-    const countQuery = TypeDepense.find(); // Create a separate count query
+    let query = TypeDepense.find(conditions);
 
     // Count the total number of documents
-    countQuery.countDocuments((err, count) => {
+    TypeDepense.find(conditions).countDocuments((err, count) => {
         if (err) {
             res.status(500).send({ message: err });
             return;
