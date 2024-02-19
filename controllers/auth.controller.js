@@ -19,13 +19,17 @@ exports.signup = (req, res) => {
             res.status(500).send({ message: err });
             return;
         }
-            user.save((err) => {
+            user.save((err,data) => {
                 if (err) {
                     res.status(500).send({ message: err });
                     return;
                 }
 
-                res.send({ message: "L'utilisateur a été crée!" });
+                res.status(200).send({
+                    id: data?._id,
+                    name: data?.name,
+                    email: data?.email,
+                });
             });
         });
 };
