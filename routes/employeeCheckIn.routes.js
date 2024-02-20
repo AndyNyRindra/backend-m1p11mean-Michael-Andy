@@ -11,7 +11,11 @@ module.exports = function(app) {
 
     app.post(
         "/api/employeeCheckIn/:id",
-        // [authJwt.verifyToken],
         controller.checkIn
+    );
+
+    app.put(
+        "/api/employeeCheckOut/:id",
+        controller.checkOut
     );
 }
