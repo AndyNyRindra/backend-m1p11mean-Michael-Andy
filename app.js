@@ -49,6 +49,14 @@ require("./routes/specialService.routes")(app);
 require("./routes/typeDepensePayment.routes")(app);
 require("./routes/depensePayment.routes")(app);
 
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  next();
+});
+
 // error handler
 app.use(function(err, req, res, next) {
   // set locals, only providing error in development

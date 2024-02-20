@@ -16,6 +16,7 @@ exports.create = (req, res) => {
 
     specialService.save(specialService).then(data => {
         console.log(specialService);
+        req.app.io.emit('specialOfferCreated', { offer: data });
         res.send(data);
     }).catch(err => {
         res.status(500).send({
