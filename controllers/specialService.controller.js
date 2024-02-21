@@ -1,12 +1,12 @@
 const db = require("../models");
 const SpecialService = db.specialService;
-
+const dateUtils = require('../utils/date.utils');
 
 exports.create = (req, res) => {
     const start = new Date(req.body.start);
-    const utcStart = new Date(Date.UTC(start.getFullYear(), start.getMonth(), start.getDate(), start.getHours(), start.getMinutes(), start.getSeconds()));
+    const utcStart = dateUtils.toLocale(start);
     const end = new Date(req.body.end);
-    const utcEnd = new Date(Date.UTC(end.getFullYear(), end.getMonth(), end.getDate(), end.getHours(), end.getMinutes(), end.getSeconds()));
+    const utcEnd = dateUtils.toLocale(end);
     const specialService = new SpecialService({
         services: req.body.services,
         promotion: req.body.promotion,
