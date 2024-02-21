@@ -2,6 +2,7 @@ const db= require ('../models');
 const dateUtils = require('../utils/date.utils');
 
 const EmployeeCheckIn = db.employeeCheckIn;
+const Employee = db.employee;
 
 exports.checkIn = (req, res) => {
     const employeeId = req.params.id;
@@ -13,6 +14,19 @@ exports.checkIn = (req, res) => {
     });
 
     checkIn.save((err, checkIn) => {
+        Employee.findByIdAndUpdate(
+            employeeId,
+            {
+                $set: { lastCheckIn: utcDate }
+            },
+            { new: true },
+            (err, employee) => {
+                if (err) {
+                    res.status(500).send({ message: err });
+                    return;
+                }
+            }
+        );
         if (err) {
             res.status(500).send({ message: err });
             return;
