@@ -16,6 +16,7 @@ db.specialService = require("./specialService");
 db.typeDepensePayment = require("./typeDepensePayment");
 db.depensePayment = require("./depensePayment");
 db.employeeCheckIn = require("./employeeCheckIn");
+db.task = require("./task");
 
 // db.ROLES = ["user", "admin", "moderator"];
 
