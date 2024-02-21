@@ -29,6 +29,9 @@ const employeeSchema = new Schema({
         },
     lastCheckIn: {
         type: Date,
+    },
+    lastCheckOut: {
+        type: Date,
     }
 
 }, {
