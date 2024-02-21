@@ -48,10 +48,27 @@ isAdmin = (req, res, next) => {
     });
 };
 
+findLoggedEmployee = (req, res, next) => {
+    let employeeId = req.headers['employeeid'];
+    Employee.findById(employeeId)
+        .populate('role')
+        .exec((err, employee) => {
+            if (err) {
+                return res.status(500).send({ message: err });
+            }
+            if (!employee) {
+                return res.status(404).send({ message: "Employee not found!" });
+            }
+            req.employee = employee; // Attach employee to the request object
+            next(); // Call the next middleware or route handler
+        });
+};
+
 
 
 const employeeAuthJwt = {
     verifyEmployeeToken,
     isAdmin,
+    findLoggedEmployee
 };
 module.exports = employeeAuthJwt;
