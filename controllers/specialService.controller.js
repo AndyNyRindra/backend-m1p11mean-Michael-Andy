@@ -40,3 +40,18 @@ exports.findCurrents = (req, res) => {
         });
 
 };
+
+exports.findCurrentForService = (req, res) => {
+    const currentDate = new Date();
+    SpecialService.find({
+        services: req.params.id,
+        start: { $lte: currentDate },
+        end: { $gte: currentDate }
+    }).populate('services').exec((err, specialServices) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+        res.send(specialServices);
+    });
+};
