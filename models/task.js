@@ -7,11 +7,17 @@ const taskSchema = new Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     },
-    services: {
-        type: [mongoose.Schema.Types.ObjectId],
-        ref: "Service",
-        required: true,
-    },
+    services: [{
+        service: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Service",
+            required: true,
+        },
+        promotion: {
+            type: Number,
+            default: 0
+        }
+    }],
     employee: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Employee",
@@ -27,9 +33,12 @@ const taskSchema = new Schema({
         //0 cree
         //1 en cours
         //2 finis
-        //3 paye
         //-1 annule
-    }
+    },
+    paid: {
+        type: Boolean,
+        default: false
+    },
 }, {
     timestamps: true
 })

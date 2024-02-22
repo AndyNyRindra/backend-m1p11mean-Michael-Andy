@@ -23,5 +23,21 @@ module.exports = function(app) {
         controller.findTaskPerEmployee
     );
 
+    app.get(
+        "/api/tasks/:id",
+        controller.findByID
+    );
+
+    app.put(
+        "/api/tasks/:id/status",
+        controller.updateStatus
+    );
+
+    app.put(
+        "/api/tasks/:id/payment",
+        controller.pay
+    );
+
+
 
 }
