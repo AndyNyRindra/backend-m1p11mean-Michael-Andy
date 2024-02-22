@@ -40,7 +40,7 @@ exports.findTaskPerEmployee = (req, res) => {
             return;
         }
         const totalPages = Math.ceil(count / size);
-        const query = Task.find({employee: employee}).populate('services').populate('user').sort({date: 'desc'}).skip(size * (page - 1)).limit(size);
+        const query = Task.find({employee: employee}).populate('user').sort({date: 'desc'}).skip(size * (page - 1)).limit(size);
         if (page && size) {
             query.exec((err, tasks) => {
                 if (err) {
