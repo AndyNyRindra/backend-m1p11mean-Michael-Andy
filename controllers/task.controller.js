@@ -61,3 +61,14 @@ exports.findTaskPerEmployee = (req, res) => {
         }
     });
 }
+
+exports.findByID = (req, res) => {
+    const id = req.params.id;
+    Task.findById(id).populate('services').populate('user').exec((err, task) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+        res.send(task);
+    });
+}

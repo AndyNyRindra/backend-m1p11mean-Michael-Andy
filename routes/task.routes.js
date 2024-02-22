@@ -23,5 +23,11 @@ module.exports = function(app) {
         controller.findTaskPerEmployee
     );
 
+    app.get(
+        "/api/tasks/:id",
+        controller.findByID
+    );
+
+
 
 }
