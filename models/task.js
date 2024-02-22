@@ -33,9 +33,12 @@ const taskSchema = new Schema({
         //0 cree
         //1 en cours
         //2 finis
-        //3 paye
         //-1 annule
-    }
+    },
+    paid: {
+        type: Boolean,
+        default: false
+    },
 }, {
     timestamps: true
 })

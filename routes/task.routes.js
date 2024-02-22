@@ -28,6 +28,16 @@ module.exports = function(app) {
         controller.findByID
     );
 
+    app.put(
+        "/api/tasks/:id/status",
+        controller.updateStatus
+    );
+
+    app.put(
+        "/api/tasks/:id/payment",
+        controller.pay
+    );
+
 
 
 }

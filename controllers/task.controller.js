@@ -2,6 +2,7 @@ const db = require("../models");
 const {findLoggedEmployee} = require("./employee.controller");
 const SpecialService = db.specialService;
 const Task = db.task;
+const TaskPayment = db.taskPayment;
 
 
 exports.create = (req, res) => {
@@ -104,3 +105,89 @@ exports.findByID = (req, res) => {
         res.send(task);
     });
 }
+
+exports.updateStatus = (req, res) => {
+    const id = req.params.id;
+    const newStatus = req.body.status;
+
+    // Récupérer la tâche à mettre à jour
+    Task.findById(id, (err, task) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+
+        if (!task) {
+            res.status(404).send({ message: "Tâche non trouvée." });
+            return;
+        }
+
+        // Vérifier si la tâche est annulée et si le nouveau statut est différent de -1 (annulé)
+        if (task.status === -1 && newStatus !== -1) {
+            res.status(400).send({ message: "La tâche annulée ne peut pas être modifiée." });
+            return;
+        }
+
+        // Vérifier si le nouveau statut est inférieur à l'ancien statut
+        if (newStatus < task.status) {
+            res.status(400).send({ message: "Le statut ne peut pas être abaissé." });
+            return;
+        }
+
+        // Mettre à jour le statut de la tâche
+        task.status = newStatus;
+        task.save((err, updatedTask) => {
+            if (err) {
+                res.status(500).send({ message: err });
+                return;
+            }
+            res.send(updatedTask);
+        });
+    });
+};
+
+exports.pay = (req, res) => {
+    const id  = req.params.id;
+    const totalPrice = req.body.totalPrice;
+
+    // Find the task by ID
+    Task.findById(id, (err, task) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+
+        if (!task) {
+            res.status(404).send({ message: "Tâche non trouvée." });
+            return;
+        }
+
+        task.paid = true;
+
+        task.save((err, updatedTask) => {
+            if (err) {
+                res.status(500).send({ message: err });
+                return;
+            }
+
+            const payment = new TaskPayment({
+                user: task.user,
+                task: updatedTask._id,
+                date: new Date(),
+                amount: totalPrice
+            });
+
+            payment.save((err, payment) => {
+                if (err) {
+                    res.status(500).send({ message: err });
+                    return;
+                }
+
+                res.send({
+                    task: updatedTask,
+                    payment: payment
+                });
+            });
+        });
+    });
+};
