@@ -42,4 +42,9 @@ module.exports = function(app) {
         employeeAuthJwt.isAdmin,
         controller.delete
     );
+
+    app.get(
+        "/api/employees/connected",
+        controller.findLoggedEmployee
+    )
 };
