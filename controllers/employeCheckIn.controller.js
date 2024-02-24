@@ -82,8 +82,8 @@ exports.checkOut = (req, res) => {
 
 exports.getCheckInByEmployeeIdBetweenTwoDates = (req, res) => {
     const employeeId = req.params.id;
-    const start = req.body.start;
-    const end = req.body.end;
+    const start = req.query.start;
+    const end = req.query.end;
     console.log(start);
     const utcStart = dateUtils.toLocale(new Date(start));
     const utcEnd = dateUtils.toLocale(new Date(end));
