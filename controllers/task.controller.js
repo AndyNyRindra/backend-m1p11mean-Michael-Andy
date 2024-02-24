@@ -1,9 +1,9 @@
 const db = require("../models");
-const {findLoggedEmployee} = require("./employee.controller");
 const SpecialService = db.specialService;
+const Service = db.service;
 const Task = db.task;
 const TaskPayment = db.taskPayment;
-
+const dateUtils = require('../utils/date.utils');
 
 exports.create = (req, res) => {
     if (!req.body) {
@@ -12,7 +12,7 @@ exports.create = (req, res) => {
     }
     const employee = req.employee;
     const start = new Date(req.body.start);
-    const utcStart = new Date(Date.UTC(start.getFullYear(), start.getMonth(), start.getDate(), start.getHours(), start.getMinutes(), start.getSeconds()));
+    const utcStart = dateUtils.toLocale(start);
 
     // Trouver les promotions actuelles pour les services
     const servicesPromotions = [];
@@ -45,7 +45,7 @@ exports.create = (req, res) => {
         console.log(servicesPromotions);
         const task = new Task({
             services: servicesPromotions,
-            user: req.body.user,
+            user: req.headers['userid'] ? req.headers['userid'] : req.body.user ? req.body.user : null,
             date: utcStart,
             employee: employee
         });
@@ -191,3 +191,66 @@ exports.pay = (req, res) => {
         });
     });
 };
+
+
+exports.makeAppointment = async (req, res) => {
+    const employee = req.body.employee;
+    const start = new Date(req.body.start);
+    const end = new Date(req.body.end);
+    const utcStart = dateUtils.toLocale(start);
+    const utcEnd = dateUtils.toLocale(end);
+    const services = req.body.services;
+    let duration = 0;
+    try {
+        await Promise.all(services.map(async (service) => {
+            const serviceData = await Service.findById(service).select('-photos');
+            duration += serviceData.duration;
+        }));
+    } catch (err) {
+        res.status(500).send({ message: err });
+        return;
+    }
+    // Find all tasks for the given employee between the start and end dates
+    const tasks = await Task.find({
+        employee: employee,
+        date: {
+            $gte: utcStart,
+            $lt: utcEnd
+        }
+    }).sort({ date: 1 }); // sort by date in ascending order
+    let availableSlots = [];
+    let currentTime = new Date(utcStart.getTime());
+
+    while (currentTime.getTime() + duration * 60000 <= utcEnd.getTime()) {
+        let isAvailable = true;
+
+        for (let i = 0; i < tasks.length; i++) {
+            const taskStart = tasks[i].date;
+            const services = tasks[i].services;
+            let duration = 0;
+            try {
+                await Promise.all(services.map(async (service) => {
+                    const serviceData = await Service.findById(service.service).select('-photos');
+                    duration += serviceData.duration;
+                }));
+            } catch (err) {
+                res.status(500).send({ message: err });
+                return;
+            }
+            const taskEnd = new Date(taskStart.getTime() + duration * 60000); // Convert duration from minutes to milliseconds
+
+            if ((currentTime.getTime() >= taskStart.getTime() && currentTime.getTime() < taskEnd.getTime()) ||
+                (currentTime.getTime() + duration * 60000 > taskStart.getTime() && currentTime.getTime() + duration * 60000 <= taskEnd.getTime())) {
+                isAvailable = false;
+                currentTime = new Date(taskEnd.getTime());
+                break;
+            }
+        }
+
+        if (isAvailable) {
+            availableSlots.push(new Date(currentTime.getTime()));
+            currentTime.setMinutes(currentTime.getMinutes() + duration);
+        }
+    }
+    res.send(availableSlots);
+}

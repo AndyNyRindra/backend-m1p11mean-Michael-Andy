@@ -38,6 +38,9 @@ module.exports = function(app) {
         controller.pay
     );
 
-
+    app.post(
+        "/api/tasks/appointment",
+        controller.makeAppointment
+    );
 
 }
