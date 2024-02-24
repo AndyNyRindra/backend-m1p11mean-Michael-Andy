@@ -39,6 +39,10 @@ const taskSchema = new Schema({
         type: Boolean,
         default: false
     },
+    appointment: {
+        type: Boolean,
+        default: false
+    },
 }, {
     timestamps: true
 })
