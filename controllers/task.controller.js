@@ -222,35 +222,56 @@ exports.makeAppointment = async (req, res) => {
     let currentTime = new Date(utcStart.getTime());
 
     while (currentTime.getTime() + duration * 60000 <= utcEnd.getTime()) {
-        let isAvailable = true;
+        // Check if the current time is within working hours and not on a weekend
+        if (currentTime.getUTCHours() >= 8 && currentTime.getUTCHours() < 17 && currentTime.getDay() !== 0 && currentTime.getDay() !== 6) {
+            let isAvailable = true;
 
-        for (let i = 0; i < tasks.length; i++) {
-            const taskStart = tasks[i].date;
-            const services = tasks[i].services;
-            let duration = 0;
-            try {
-                await Promise.all(services.map(async (service) => {
-                    const serviceData = await Service.findById(service.service).select('-photos');
-                    duration += serviceData.duration;
-                }));
-            } catch (err) {
-                res.status(500).send({ message: err });
-                return;
+            for (let i = 0; i < tasks.length; i++) {
+                const taskStart = tasks[i].date;
+                const services = tasks[i].services;
+                let taskDuration = 0;
+                try {
+                    await Promise.all(services.map(async (service) => {
+                        const serviceData = await Service.findById(service.service).select('-photos');
+                        taskDuration += serviceData.duration;
+                    }));
+                } catch (err) {
+                    res.status(500).send({ message: err });
+                    return;
+                }
+                const taskEnd = new Date(taskStart.getTime() + taskDuration * 60000); // Convert duration from minutes to milliseconds
+
+                if ((currentTime.getTime() >= taskStart.getTime() && currentTime.getTime() < taskEnd.getTime()) ||
+                    (currentTime.getTime() + duration * 60000 > taskStart.getTime() && currentTime.getTime() + duration * 60000 <= taskEnd.getTime())) {
+                    isAvailable = false;
+                    currentTime = new Date(taskEnd.getTime());
+                    break;
+                }
             }
-            const taskEnd = new Date(taskStart.getTime() + duration * 60000); // Convert duration from minutes to milliseconds
 
-            if ((currentTime.getTime() >= taskStart.getTime() && currentTime.getTime() < taskEnd.getTime()) ||
-                (currentTime.getTime() + duration * 60000 > taskStart.getTime() && currentTime.getTime() + duration * 60000 <= taskEnd.getTime())) {
-                isAvailable = false;
-                currentTime = new Date(taskEnd.getTime());
-                break;
+            if (isAvailable) {
+                availableSlots.push(new Date(currentTime.getTime()));
+                currentTime.setMinutes(currentTime.getMinutes() + duration);
+            } else {
+                currentTime.setMinutes(currentTime.getMinutes() + 1);
             }
-        }
-
-        if (isAvailable) {
-            availableSlots.push(new Date(currentTime.getTime()));
-            currentTime.setMinutes(currentTime.getMinutes() + duration);
+        } else {
+            // If the current time is outside of working hours or on a weekend, move to the next available slot
+            if (currentTime.getUTCHours() >= 17 || currentTime.getDay() === 6) {
+                // If it's after 5pm or it's Saturday, move to 8am the next day
+                currentTime.setUTCHours(24 + 8);
+                currentTime.setMinutes(0);
+            } else if (currentTime.getDay() === 0) {
+                // If it's Sunday, move to 8am the next day
+                currentTime.setUTCHours(24 + 8);
+                currentTime.setMinutes(0);
+            } else {
+                // Otherwise, it's before 8am, so move to 8am
+                currentTime.setUTCHours(8);
+                currentTime.setMinutes(0);
+            }
         }
     }
     res.send(availableSlots);
 }
+
