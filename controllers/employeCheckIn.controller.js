@@ -79,3 +79,30 @@ exports.checkOut = (req, res) => {
         });
     });
 }
+
+exports.getCheckInByEmployeeIdBetweenTwoDates = (req, res) => {
+    const employeeId = req.params.id;
+    const start = req.body.start;
+    const end = req.body.end;
+    console.log(start);
+    const utcStart = dateUtils.toLocale(new Date(start));
+    const utcEnd = dateUtils.toLocale(new Date(end));
+    EmployeeCheckIn.find({ employee: employeeId,
+    in: { $gte: utcStart, $lte: utcEnd }
+    }).exec((err, checkIns) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+        // get the difference between in and out
+        const checkInsWithDuration = checkIns.map(checkIn => {
+            const inDate = new Date(checkIn.in);
+            const outDate = new Date(checkIn.out);
+            // duration in hours
+            const duration = (outDate - inDate) / 1000 / 60 / 60;
+            return { ...checkIn._doc, duration };
+        }
+        );
+        res.status(200).send(checkInsWithDuration);
+    });
+}

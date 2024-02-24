@@ -18,4 +18,9 @@ module.exports = function(app) {
         "/api/employeeCheckOut/:id",
         controller.checkOut
     );
+
+    app.get(
+        "/api/employeeCheckIn/:id",
+        controller.getCheckInByEmployeeIdBetweenTwoDates
+    );
 }
