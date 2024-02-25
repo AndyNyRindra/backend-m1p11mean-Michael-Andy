@@ -7,50 +7,34 @@ const User = db.user;
 
 
 // get list of employee rating by user id, get all employee, and rating if there is, if not then 0
-exports.getRatingByUserId = (req, res) => {
-    const userId = req.params.id;
-    if (userId==='undefined') {
-        Employee.find({}, (err, employees) => {
-            if (err) {
-                return res.status(500).send({ message: err });
-            }
-            const employeesWithZeroRating = employees.map(employee => ({ ...employee._doc, rating: 0 }));
-            return res.status(200).send(employeesWithZeroRating);
+exports.getEmployeeRatings = async (userId) => {
+    if (userId === 'undefined') {
+        const employees = await Employee.find({});
+        return employees.map(employee => ({ ...employee._doc, rating: 0 }));
+    } else {
+        const employees = await Employee.find({});
+        const ratings = await EmployeeRating.find({ user: userId });
+        const ratingsMap = new Map();
+        ratings.forEach(rating => {
+            ratingsMap.set(rating.employee.toString(), rating.rating);
         });
-    }else {
-        // find all employees
-        Employee.find({}, (err, employees) => {
-            if (err) {
-                res.status(500).send({message: err});
-                return;
-            }
-
-            // Find ratings for the user
-            EmployeeRating.find({user: userId}, (err, ratings) => {
-                if (err) {
-                    res.status(500).send({message: err});
-                    return;
-                }
-
-                // Create a map to store ratings by employee ID
-                const ratingsMap = new Map();
-                ratings.forEach(rating => {
-                    ratingsMap.set(rating.employee.toString(), rating.rating);
-                });
-
-                // Loop through employees to add ratings (or 0 if not found)
-                const employeesWithRatings = employees.map(employee => {
-                    const employeeId = employee._id.toString();
-                    const rating = ratingsMap.get(employeeId) || 0;
-                    return {...employee._doc, rating}; // Add rating to employee document
-                });
-
-                // Return employees with ratings
-                return res.status(200).send(employeesWithRatings);
-            });
+        return employees.map(employee => {
+            const employeeId = employee._id.toString();
+            const rating = ratingsMap.get(employeeId) || 0;
+            return { ...employee._doc, rating };
         });
     }
-}
+};
+
+exports.getRatingByUserId = async (req, res) => {
+    const userId = req.params.id;
+    try {
+        const employeesWithRatings = await this.getEmployeeRatings(userId);
+        return res.status(200).send(employeesWithRatings);
+    } catch (err) {
+        return res.status(500).send({ message: err });
+    }
+};
 
 exports.insertOrUpdateRating = (req, res) => {
     const userId = req.body.userId;
