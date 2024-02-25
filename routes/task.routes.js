@@ -43,4 +43,9 @@ module.exports = function(app) {
         controller.makeAppointment
     );
 
+    app.post(
+        "/api/tasks/appointment/confirm",
+        controller.createAppointment
+    );
+
 }

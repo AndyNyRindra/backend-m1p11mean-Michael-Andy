@@ -1,18 +1,29 @@
 const db = require("../models");
 const Employee = db.employee;
+const User = db.user;
 const SpecialService = db.specialService;
 const Service = db.service;
 const Task = db.task;
 const TaskPayment = db.taskPayment;
 const dateUtils = require('../utils/date.utils');
 const employeeRatingController = require("../controllers/employeeRating.controller");
+const nodemailer = require('nodemailer');
+
+// Configure Nodemailer
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'etu1589etu1635@gmail.com',
+        pass: 'fuumolnfwkrjorvk'
+    }
+});
 
 exports.create = (req, res) => {
     if (!req.body) {
         res.status(400).send({ message: "Le contenu ne peut pas être vide!" });
         return;
     }
-    const employee = req.employee;
+    const employee = req.employee ? req.employee : req.body.employee;
     const start = new Date(req.body.start);
     const utcStart = dateUtils.toLocale(start);
 
@@ -307,3 +318,29 @@ exports.makeAppointment = async (req, res) => {
     res.send(availableSlots);
 }
 
+exports.createAppointment = async (req, res) => {
+    await this.create(req, res);
+    const user = req.headers['userid'];
+    const employee = req.body.employee;
+    const start = new Date(req.body.start);
+    const utcStart = dateUtils.toLocale(start);
+
+    const emp = await Employee.findById(employee).select('-photo -password');
+    const usr = await User.findById(user).select('-password');
+
+    // Send email to employee and user
+    const mailOptions = {
+        from: 'etu1589etu1635@gmail.com',
+        to: `${emp.email}, ${usr.email}`,
+        subject: `Nouveau rendez-vous - ${utcStart.toLocaleString('fr-FR')}`,
+        html: `<p>Bonjour,</p><p>Le rendez-vous du client <b>${usr.name}</b> ce <b>${utcStart.toLocaleString('fr-FR')}</b> a été créé. L'employé en charge est <b>${emp.name}</b>.</p><p>Cordialement,</p><p>L'équipe Beauty Malagasy</p>`
+    };
+
+    transporter.sendMail(mailOptions, function(error, info){
+        if (error) {
+            console.log(error);
+        } else {
+            console.log('Email sent: ' + info.response);
+        }
+    });
+}
