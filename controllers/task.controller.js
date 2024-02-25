@@ -8,12 +8,14 @@ const TaskPayment = db.taskPayment;
 const dateUtils = require('../utils/date.utils');
 const employeeRatingController = require("../controllers/employeeRating.controller");
 const nodemailer = require('nodemailer');
+const cron = require('node-cron');
 
+const email = 'etu1589etu1635@gmail.com';
 // Configure Nodemailer
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'etu1589etu1635@gmail.com',
+        user: email,
         pass: 'fuumolnfwkrjorvk'
     }
 });
@@ -330,10 +332,10 @@ exports.createAppointment = async (req, res) => {
 
     // Send email to employee and user
     const mailOptions = {
-        from: 'etu1589etu1635@gmail.com',
+        from: email,
         to: `${emp.email}, ${usr.email}`,
-        subject: `Nouveau rendez-vous - ${utcStart.toLocaleString('fr-FR')}`,
-        html: `<p>Bonjour,</p><p>Le rendez-vous du client <b>${usr.name}</b> ce <b>${utcStart.toLocaleString('fr-FR')}</b> a été créé. L'employé en charge est <b>${emp.name}</b>.</p><p>Cordialement,</p><p>L'équipe Beauty Malagasy</p>`
+        subject: `Nouveau rendez-vous - ${dateUtils.formatDate(utcStart)}`,
+        html: `<p>Bonjour,</p><p>Le rendez-vous du client <b>${usr.name}</b> ce <b>${dateUtils.formatDate(utcStart)}</b> a été créé. L'employé en charge est <b>${emp.name}</b>.</p><p>Cordialement,</p><p>L'équipe Beauty Malagasy</p>`
     };
 
     transporter.sendMail(mailOptions, function(error, info){
@@ -343,4 +345,40 @@ exports.createAppointment = async (req, res) => {
             console.log('Email sent: ' + info.response);
         }
     });
+
 }
+
+
+// Planifiez une tâche pour s'exécuter tous les jours à minuit
+cron.schedule('00 12 * * *', async () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Trouvez tous les rendez-vous pour demain
+    const appointments = await Task.find({
+        appointment: true,
+        date: {
+            $gte: new Date(tomorrow.setUTCHours(0, 0, 0, 0)),
+            $lt: new Date(tomorrow.setUTCHours(23, 59, 59, 999))
+        }
+    }).populate('user');
+
+    // Envoyez un e-mail de rappel pour chaque rendez-vous
+    for (const appointment of appointments) {
+        const usr = await User.findById(appointment.user).select('-password');
+        const mailOptions = {
+            from: email,
+            to: usr.email,
+            subject: `Rappel de rendez-vous - ${dateUtils.formatDate(appointment.date)}`,
+            html: `<p>Bonjour,</p><p>Nous vous rappelons que vous avez un rendez-vous demain : ${dateUtils.formatDate(appointment.date)}.</p><p>Cordialement,</p><p>L'équipe Beauty Malagasy</p>`
+        };
+
+        transporter.sendMail(mailOptions, function(error, info){
+            if (error) {
+                console.log(error);
+            } else {
+                console.log('Email sent: ' + info.response);
+            }
+        });
+    }
+});
