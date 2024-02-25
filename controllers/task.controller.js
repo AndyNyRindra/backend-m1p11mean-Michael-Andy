@@ -5,6 +5,7 @@ const Service = db.service;
 const Task = db.task;
 const TaskPayment = db.taskPayment;
 const dateUtils = require('../utils/date.utils');
+const employeeRatingController = require("../controllers/employeeRating.controller");
 
 exports.create = (req, res) => {
     if (!req.body) {
@@ -195,6 +196,7 @@ exports.pay = (req, res) => {
 
 
 exports.makeAppointment = async (req, res) => {
+    const user = req.headers['userid'];
     const employee = req.body.employee;
     const start = new Date(req.body.start);
     const end = new Date(req.body.end);
@@ -212,9 +214,8 @@ exports.makeAppointment = async (req, res) => {
         return;
     }
     let availableSlots = [];
-    let currentTime = new Date(utcStart.getTime());
-
     const getAvailableSlots = async (employee) => {
+        let currentTime = new Date(utcStart.getTime());
         // Find all tasks for the given employee between the start and end dates
         const tasks = await Task.find({
             employee: employee,
@@ -223,7 +224,6 @@ exports.makeAppointment = async (req, res) => {
                 $lt: utcEnd
             }
         }).sort({ date: 1 }); // sort by date in ascending order
-
         while (currentTime.getTime() + duration * 60000 <= utcEnd.getTime()) {
             // Check if the current time is within working hours and not on a weekend
             if (currentTime.getUTCHours() >= 8 && currentTime.getUTCHours() < 17 && currentTime.getDay() !== 0 && currentTime.getDay() !== 6) {
@@ -284,6 +284,25 @@ exports.makeAppointment = async (req, res) => {
     }
 
     await getAvailableSlots(employee);
+
+    if (availableSlots.length === 0) {
+        let employeeRatings = await employeeRatingController.getEmployeeRatings(user);
+        // sort employeeRatings by rating
+        employeeRatings.sort((a, b) => {
+            return b.rating - a.rating;
+        }
+        );
+        // remove the employee from the list
+        employeeRatings = employeeRatings.filter(emp => emp._id.toString() !== employee);
+        let i = 0;
+        while (i < employeeRatings.length) {
+            await getAvailableSlots(employeeRatings[i]._id);
+            if (availableSlots.length > 0) {
+                break;
+            }
+            i++;
+        }
+    }
 
     res.send(availableSlots);
 }
