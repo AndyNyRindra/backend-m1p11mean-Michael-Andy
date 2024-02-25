@@ -50,6 +50,7 @@ require("./routes/typeDepensePayment.routes")(app);
 require("./routes/depensePayment.routes")(app);
 require("./routes/employeeCheckIn.routes")(app);
 require("./routes/task.routes")(app);
+require("./routes/stat.routes")(app);
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200');
