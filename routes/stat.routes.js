@@ -20,4 +20,10 @@ module.exports = function(app) {
         employeeAuthJwt.isAdmin,
         controller.getTurnOverPerMonth
     );
+
+    app.get(
+        "/api/stat/benefits/month",
+        employeeAuthJwt.isAdmin,
+        controller.getMonthlyBenefits
+    );
 }
