@@ -48,4 +48,10 @@ module.exports = function(app) {
         controller.createAppointment
     );
 
+    app.get(
+        "/api/tasks/commission/:id",
+        employeeAuthJwt.findLoggedEmployee,
+        controller.getDailyCommission
+    );
+
 }

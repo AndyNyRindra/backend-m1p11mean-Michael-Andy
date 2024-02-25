@@ -43,6 +43,10 @@ const taskSchema = new Schema({
         type: Boolean,
         default: false
     },
+    commission: {
+        type: Number,
+        default: 0
+    },
 }, {
     timestamps: true
 })
