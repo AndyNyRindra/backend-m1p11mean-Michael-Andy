@@ -30,3 +30,43 @@ exports.getTurnOverPerDay = (req, res) => {
     });
 
 }
+exports.getTurnOverPerMonth = (req, res) => {
+    const year = req.query.year;
+
+    const months = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+
+    const startDate = new Date(year, 0, 1);
+    const endDate = new Date(year, 11, 31);
+
+    const monthPayments = {};
+
+    TaskPayment.find({
+        date: {
+            $gte: startDate,
+            $lte: endDate
+        }
+    }).exec((err, payments) => {
+        if (err) {
+            console.log(err);
+            res.status(500).send({ message: err });
+            return;
+        }
+
+        payments.forEach(payment => {
+            const monthIndex = payment.date.getMonth();
+            const monthName = months[monthIndex];
+            if (!monthPayments[monthName]) {
+                monthPayments[monthName] = payment.amount;
+            } else {
+                monthPayments[monthName] += payment.amount;
+            }
+        });
+
+        const result = months.map(month => ({
+            month,
+            amount: monthPayments[month] || 0
+        }));
+
+        res.status(200).send({ data: result });
+    });
+}
