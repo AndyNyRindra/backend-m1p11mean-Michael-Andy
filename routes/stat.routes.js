@@ -26,4 +26,10 @@ module.exports = function(app) {
         employeeAuthJwt.isAdmin,
         controller.getMonthlyBenefits
     );
+
+    app.get(
+        "/api/stat/expense/month",
+        employeeAuthJwt.isAdmin,
+        controller.getExpensesPerMonth
+    )
 }
