@@ -161,4 +161,65 @@ exports.getMonthlyBenefits = (req, res) => {
 }
 
 
+exports.getExpensesPerMonth = (req, res) => {
+    const year = req.query.year;
 
+    const months = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+
+    const startDate = new Date(year, 0, 1);
+    const endDate = new Date(year, 11, 31);
+
+    const monthExpensePayments = {};
+    const monthTypeExpensePayments = {};
+
+    DepensePayment.find({
+        date: {
+            $gte: startDate,
+            $lte: endDate
+        }
+    }).exec((err, expensePayments) => {
+        if (err) {
+            console.log(err);
+            res.status(500).send({ message: err });
+            return;
+        }
+
+        expensePayments.forEach(expensePayment => {
+            const monthIndex = expensePayment.date.getMonth();
+            const monthName = months[monthIndex];
+            if (!monthExpensePayments[monthName]) {
+                monthExpensePayments[monthName] = expensePayment.value;
+            } else {
+                monthExpensePayments[monthName] += expensePayment.value;
+            }
+        });
+
+        TypeDepensePayment.find({
+            month: { $gte: startDate.getMonth() + 1, $lte: endDate.getMonth() + 1 },
+            year: year
+        }).exec((err, typeExpensePayments) => {
+            if (err) {
+                console.log(err);
+                res.status(500).send({ message: err });
+                return;
+            }
+
+            typeExpensePayments.forEach(typeExpensePayment => {
+                const monthName = months[typeExpensePayment.month - 1];
+                if (!monthTypeExpensePayments[monthName]) {
+                    monthTypeExpensePayments[monthName] = typeExpensePayment.value;
+                } else {
+                    monthTypeExpensePayments[monthName] += typeExpensePayment.value;
+                }
+            });
+
+            const result = months.map(month => ({
+                month,
+                expenses: (monthExpensePayments[month] || 0) + (monthTypeExpensePayments[month] || 0)
+            }));
+
+            res.status(200).send({ data: result });
+        });
+    });
+
+}
