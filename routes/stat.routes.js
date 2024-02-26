@@ -44,4 +44,10 @@ module.exports = function(app) {
         employeeAuthJwt.isAdmin,
         controller.getNbTaskPerMonth
     );
+
+    app.get(
+        "/api/stat/employee/nbhour",
+        employeeAuthJwt.isAdmin,
+        controller.getEmployeeHourOfWork
+    );
 }
