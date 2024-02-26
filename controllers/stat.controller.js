@@ -4,6 +4,8 @@ const TaskPayment = db.taskPayment;
 const DepensePayment = db.depensePayment;
 const TypeDepensePayment = db.typeDepensePayment;
 const Task = db.task;
+const Employee = db.employee;
+const EmployeeCheckIn = db.employeeCheckIn;
 
 exports.getTurnOverPerDay = (req, res) => {
     const employeeId = req.params.id;
@@ -313,4 +315,52 @@ exports.getNbTaskPerDay = (req, res) => {
     });
 
 
+}
+
+
+exports.getEmployeeHourOfWork = (req, res) => {
+    const start = req.query.start;
+    const end = req.query.end;
+    const utcStart = dateUtils.toLocale(new Date(start));
+    const utcEnd = dateUtils.toLocale(new Date(end));
+    Employee.find().exec((err, employees) => {
+        if (err) {
+            console.log(err);
+            res.status(500).send({ message: err });
+            return;
+        }
+        let result = [];
+        employees.forEach(employee => {
+            EmployeeCheckIn.find({
+                employee: employee._id,
+                in: {
+                    $gte: utcStart,
+                    $lte: utcEnd
+                }
+            }).exec((err, checkIns) => {
+                if (err) {
+                    console.log(err);
+                    res.status(500).send({ message: err });
+                    return;
+                }
+                let nbHours = 0;
+                checkIns.forEach(checkIn => {
+                    const inDate = new Date(checkIn.in);
+                    const outDate = new Date(checkIn.out);
+                    // duration in hours
+                    const duration = (outDate - inDate) / 1000 / 60 / 60;
+                    nbHours += duration;
+                });
+                result.push({ employee: employee, nbHours: nbHours });
+                //order result by nbHours
+                result = result.sort((a, b) => {
+                    return b.nbHours - a.nbHours;
+                });
+                if (result.length === employees.length) {
+                    res.status(200).send({ data: result });
+                }
+            });
+        });
+
+    });
 }
