@@ -31,5 +31,17 @@ module.exports = function(app) {
         "/api/stat/expense/month",
         employeeAuthJwt.isAdmin,
         controller.getExpensesPerMonth
-    )
+    );
+
+    app.get(
+        "/api/stat/task/day",
+        employeeAuthJwt.isAdmin,
+        controller.getNbTaskPerDay
+    );
+
+    app.get(
+        "/api/stat/task/month",
+        employeeAuthJwt.isAdmin,
+        controller.getNbTaskPerMonth
+    );
 }

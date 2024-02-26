@@ -3,6 +3,7 @@ const dateUtils = require("../utils/date.utils");
 const TaskPayment = db.taskPayment;
 const DepensePayment = db.depensePayment;
 const TypeDepensePayment = db.typeDepensePayment;
+const Task = db.task;
 
 exports.getTurnOverPerDay = (req, res) => {
     const employeeId = req.params.id;
@@ -221,5 +222,95 @@ exports.getExpensesPerMonth = (req, res) => {
             res.status(200).send({ data: result });
         });
     });
+
+}
+
+exports.getNbTaskPerMonth = (req, res) => {
+    const year = req.query.year;
+
+    const months = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+
+    const startDate = new Date(year, 0, 1);
+    const endDate = new Date(year, 11, 31);
+
+    Task.find({
+        date: {
+            $gte: startDate,
+            $lte: endDate
+        },status:{
+            $gte:0
+        }
+    }).exec((err, tasks) => {
+        if (err) {
+            console.log(err);
+            res.status(500).send({ message: err });
+            return;
+        }
+
+        const monthAppointments = {};
+        const monthNonAppointments = {};
+
+        tasks.forEach(task => {
+            const monthIndex = task.date.getMonth();
+            const monthName = months[monthIndex];
+            if (task.appointment) {
+                if (!monthAppointments[monthName]) {
+                    monthAppointments[monthName] = 1;
+                } else {
+                    monthAppointments[monthName] += 1;
+                }
+            } else {
+                if (!monthNonAppointments[monthName]) {
+                    monthNonAppointments[monthName] = 1;
+                } else {
+                    monthNonAppointments[monthName] += 1;
+                }
+            }
+        });
+
+        const result = months.map(month => ({
+            month,
+            appointments: monthAppointments[month] || 0,
+            nonAppointments: monthNonAppointments[month] || 0
+        }));
+
+        res.status(200).send({ data: result });
+    });
+}
+
+exports.getNbTaskPerDay = (req, res) => {
+    const employeeId = req.params.id;
+    const start = req.query.start;
+    const utcStart = dateUtils.toLocale(new Date(start));
+    const utcStartPlusOne = dateUtils.toLocale(new Date(start));
+    console.log(start);
+    utcStartPlusOne.setDate(utcStartPlusOne.getDate() + 1);
+    const date = new Date();
+
+    Task.find({
+        date: {
+            $gte: utcStart,
+            $lt: utcStartPlusOne
+        },status:{
+            $gte:0
+        }
+    }).exec((err, tasks) => {
+        if (err) {
+            console.log(err);
+            res.status(500).send({ message: err });
+            return;
+        }
+        let nbTaskAppointment = 0;
+        let nbTaskNonAppointment = 0;
+        tasks.forEach(task => {
+            if (task.appointment) {
+                nbTaskAppointment += 1;
+            } else {
+                nbTaskNonAppointment += 1;
+            }
+        });
+        res.status(200).send({ data: { nbTaskAppointment, nbTaskNonAppointment } });
+    });
+
 
 }
