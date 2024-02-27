@@ -57,41 +57,37 @@ exports.create = (req, res) => {
 
     const createTask = async () => {
         let totalCommission = 0;
-        await servicesPromotions.forEach(service => {
-            //find service by id
-            Service.findById(service.service).exec((err, service) => {
-                if (err) {
-                    console.log(err);
-                    res.status(500).send({message: err});
-                    return;
+
+        try {
+            for (const service of servicesPromotions) {
+                const foundService = await Service.findById(service.service).exec();
+
+                if (!foundService) {
+                    return res.status(404).send({ message: "Service not found." });
                 }
-                if (!service) {
-                    res.status(404).send({message: "Service not found."});
-                    return;
-                }
-                const commissionAmount = (service.price * service.commission) / 100;
+
+                const commissionAmount = (foundService.price * foundService.commission) / 100;
                 totalCommission += commissionAmount;
-                const task = new Task({
-                    services: servicesPromotions,
-                    user: req.headers['userid'] ? req.headers['userid'] : req.body.user ? req.body.user : null,
-                    date: utcStart,
-                    employee: employee,
-                    commission: totalCommission
-                });
+            }
 
-
-                task.save(task).then(data => {
-                    res.send(data);
-                }).catch(err => {
-                    console.log(err);
-                    res.status(500).send({
-                        message: err.message || "Erreur lors de la création de la tâche"
-                    });
-                });
+            const task = new Task({
+                services: servicesPromotions,
+                user: req.headers['userid'] || req.body.user || null,
+                date: utcStart,
+                employee: employee,
+                commission: totalCommission
             });
-        });
 
+            const savedTask = await task.save();
+            res.send(savedTask);
+        } catch (err) {
+            console.log(err);
+            res.status(500).send({
+                message: err.message || "Erreur lors de la création de la tâche"
+            });
+        }
     };
+
 };
 
 
