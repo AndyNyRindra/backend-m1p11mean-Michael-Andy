@@ -428,3 +428,36 @@ exports.getDailyCommission = (req, res) => {
         res.status(200).send({ data: commission });
     });
 }
+
+exports.getTaskForUser = (req, res) => {
+    const user = req.headers['userid'];
+    const results = [];
+    Task.find({ user: user })
+        .populate({
+            path: 'employee',
+            select: 'name'
+        })
+        .populate({
+            path: 'services',
+            populate: {
+                path: 'service',
+                select: ['name','price'],
+            }
+        })
+        .exec((err, tasks) => {
+            tasks.forEach(task =>{
+                let totalPrice=0;
+                task.services.forEach(service  => {
+                    const promotionPrice = service.service.price * (1 - service.promotion / 100); // Appliquer la promotion en pourcentage
+                    totalPrice += promotionPrice;
+                });
+                results.push({task:task,price:totalPrice})
+
+            });
+            if (err) {
+                res.status(500).send({ message: err });
+                return;
+            }
+            res.send({data:results});
+        });
+}

@@ -54,4 +54,9 @@ module.exports = function(app) {
         controller.getDailyCommission
     );
 
+    app.get(
+        "/api/tasks/get/user",
+        controller.getTaskForUser
+    );
+
 }
