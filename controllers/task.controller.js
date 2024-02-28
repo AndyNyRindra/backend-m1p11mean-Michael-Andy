@@ -83,7 +83,7 @@ exports.create = (req, res) => {
             const savedTask = await task.save();
             if (savedTask.appointment !== undefined && savedTask.appointment === true) {
                 let totalPrice=0;
-                await Task.findById(savedTask._id)
+                Task.findById(savedTask._id)
                     .populate({
                         path: 'services',
                         populate: {
@@ -91,14 +91,14 @@ exports.create = (req, res) => {
                             select: ['name','price'],
                         }
                     })
-                    .exec((err, task) => {
+                    .exec(async (err, task) => {
                             let totalPrice=0;
                             task.services.forEach(service  => {
                                 const promotionPrice = service.service.price * (1 - service.promotion / 100); // Appliquer la promotion en pourcentage
                                 totalPrice += promotionPrice;
                             });
+                        await performPayment(savedTask._id, totalPrice);
                     });
-                await performPayment(savedTask._id, totalPrice);
             }
             res.send(savedTask);
         } catch (err) {
@@ -218,7 +218,6 @@ const performPayment = async (id, totalPrice) => {
         });
 
         const savedPayment = await payment.save();
-
         return {
             task: updatedTask,
             payment: savedPayment
