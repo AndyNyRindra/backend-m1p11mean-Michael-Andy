@@ -41,6 +41,16 @@ exports.findCurrents = (req, res) => {
 
 };
 
+exports.findAll = (req, res) => {
+    SpecialService.find().populate('services').exec((err, specialServices) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+        res.send(specialServices);
+    });
+}
+
 exports.findCurrentForService = (req, res) => {
     const currentDate = new Date();
     SpecialService.find({
@@ -55,3 +65,22 @@ exports.findCurrentForService = (req, res) => {
         res.send(specialServices);
     });
 };
+
+exports.delete = (req, res) => {
+    SpecialService.findByIdAndRemove(req.params.id)
+        .then(specialService => {
+            if (!specialService) {
+                res.status(404).send({
+                    message: `L'offre spéciale avec l'id ${req.params.id} n'a pas été trouvée`
+                });
+            } else {
+                req.app.io.emit('specialOfferDeleted', { offer: specialService });
+                res.send({ message: "L'offre spéciale a été supprimée avec succès!" });
+            }
+        })
+        .catch(err => {
+            res.status(500).send({
+                message: "Impossible de supprimer l'offre spéciale avec l'id " + req.params.id
+            });
+        });
+}

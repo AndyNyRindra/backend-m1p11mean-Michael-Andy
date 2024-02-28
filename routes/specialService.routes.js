@@ -22,5 +22,16 @@ module.exports = function(app) {
         controller.findCurrents
     );
 
+    app.delete(
+        "/api/specialServices/:id",
+        employeeAuthJwt.isAdmin,
+        controller.delete
+    );
+
+    app.get(
+        "/api/specialServices",
+        controller.findAll
+    );
+
 
 }
