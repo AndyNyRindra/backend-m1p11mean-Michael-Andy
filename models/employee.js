@@ -26,7 +26,13 @@ const employeeSchema = new Schema({
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Role"
-        }
+        },
+    lastCheckIn: {
+        type: Date,
+    },
+    lastCheckOut: {
+        type: Date,
+    }
 
 }, {
     timestamps: true

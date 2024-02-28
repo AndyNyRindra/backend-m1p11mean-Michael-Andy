@@ -172,3 +172,20 @@ exports.updatePassword = (req, res) => {
         });
     });
 }
+
+
+exports.findLoggedEmployee = (req, res) => {
+    let employeeId = req.headers['employeeid'];
+    Employee.findById(employeeId)
+        .populate('role')
+        .exec((err, employee) => {
+            if (err) {
+                return res.status(500).send({ message: err });
+            }
+            if (!employee) {
+                return res.status(404).send({ message: "Employee not found!" });
+            }
+            req.employee = employee; // Attach employee to the request object
+            res.send(employee);
+        });
+}
