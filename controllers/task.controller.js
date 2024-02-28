@@ -75,7 +75,8 @@ exports.create = (req, res) => {
                 user: req.headers['userid'] || req.body.user || null,
                 date: utcStart,
                 employee: employee,
-                commission: totalCommission
+                commission: totalCommission,
+                appointment: req.body.appointment !== undefined ? req.body.appointment : false
             });
 
             const savedTask = await task.save();
