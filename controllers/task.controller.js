@@ -9,6 +9,7 @@ const dateUtils = require('../utils/date.utils');
 const employeeRatingController = require("../controllers/employeeRating.controller");
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
+const {save} = require("debug");
 
 const email = 'etu1589etu1635@gmail.com';
 // Configure Nodemailer
@@ -80,6 +81,25 @@ exports.create = (req, res) => {
             });
 
             const savedTask = await task.save();
+            if (savedTask.appointment !== undefined && savedTask.appointment === true) {
+                let totalPrice=0;
+                await Task.findById(savedTask._id)
+                    .populate({
+                        path: 'services',
+                        populate: {
+                            path: 'service',
+                            select: ['name','price'],
+                        }
+                    })
+                    .exec((err, task) => {
+                            let totalPrice=0;
+                            task.services.forEach(service  => {
+                                const promotionPrice = service.service.price * (1 - service.promotion / 100); // Appliquer la promotion en pourcentage
+                                totalPrice += promotionPrice;
+                            });
+                    });
+                await performPayment(savedTask._id, totalPrice);
+            }
             res.send(savedTask);
         } catch (err) {
             console.log(err);
@@ -179,50 +199,48 @@ exports.updateStatus = (req, res) => {
     });
 };
 
-exports.pay = (req, res) => {
-    const id  = req.params.id;
-    const totalPrice = req.body.totalPrice;
-
-    // Find the task by ID
-    Task.findById(id, (err, task) => {
-        if (err) {
-            res.status(500).send({ message: err });
-            return;
-        }
+const performPayment = async (id, totalPrice) => {
+    try {
+        const task = await Task.findById(id);
 
         if (!task) {
-            res.status(404).send({ message: "Tâche non trouvée." });
-            return;
+            throw new Error("Tâche non trouvée.");
         }
 
         task.paid = true;
+        const updatedTask = await task.save();
 
-        task.save((err, updatedTask) => {
-            if (err) {
-                res.status(500).send({ message: err });
-                return;
-            }
-
-            const payment = new TaskPayment({
-                user: task.user,
-                task: updatedTask._id,
-                date: new Date(),
-                amount: totalPrice
-            });
-
-            payment.save((err, payment) => {
-                if (err) {
-                    res.status(500).send({ message: err });
-                    return;
-                }
-
-                res.send({
-                    task: updatedTask,
-                    payment: payment
-                });
-            });
+        const payment = new TaskPayment({
+            user: task.user,
+            task: updatedTask._id,
+            date: new Date(),
+            amount: totalPrice
         });
-    });
+
+        const savedPayment = await payment.save();
+
+        return {
+            task: updatedTask,
+            payment: savedPayment
+        };
+    } catch (error) {
+        throw new Error(error.message);
+    }
+};
+
+exports.pay = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const totalPrice = req.body.totalPrice;
+
+        // Utilisez la fonction indépendante "performPayment"
+        const payResponse = await performPayment(id, totalPrice);
+
+        // Répondre avec la réponse du paiement
+        res.send(payResponse);
+    } catch (error) {
+        res.status(500).send({ message: error.message });
+    }
 };
 
 
