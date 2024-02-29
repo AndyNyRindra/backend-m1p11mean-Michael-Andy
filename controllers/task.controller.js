@@ -385,7 +385,7 @@ exports.createAppointment = async (req, res) => {
 
 
 // Planifiez une tâche pour s'exécuter tous les jours à minuit
-cron.schedule('20 14 * * *', async () => {
+cron.schedule('00 12 * * *', async () => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
 
